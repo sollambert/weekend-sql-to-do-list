@@ -1,32 +1,29 @@
-$(() => {
-        onReady();
-});
+$(() => {onReady();});
 
 function onReady() {
         $(document).on('click', '#task-btn', submitTask);
-        $(document).on('keypress', 'input', (e) => {
-                if (e.which == 13) {
+        $(document).on('keypress', 'input', (key) => {
+                if (key.which == 13) {
                         submitTask();
                 }
-        })
+        });
         getTasks();
 }
 
 function getTasks() {
         slay.get('/tasks')
-                .then((response) => {
-                        console.log(response);
-                        let appendStr = ''
-                        for (let task of response) {
-                                appendStr += getTaskAppendStr
-                        (task);
-                        }
-                        render('#task-div', appendStr);
-                })
-                .catch((err) => {
-                        console.log(err);
-                        $('body').prepend('Oops we made a fucky wucky...', err);
-                });
+        .then((response) => {
+                console.log(response);
+                let appendStr = ''
+                for (let task of response) {
+                        appendStr += getTaskAppendStr(task);
+                }
+                render('#task-div', appendStr);
+        })
+        .catch((err) => {
+                console.log(err);
+                $('body').prepend('Oops we made a fucky wucky...', err);
+        });
 }
 
 function getTaskAppendStr(task) {
@@ -66,7 +63,7 @@ function submitTask() {
         let desc = $('#task-desc').val();
         $('#task-name').val('');
         $('#task-desc').val('');
-        
+
         let payload = { name, desc };
 
         slay.post('/tasks', payload)
