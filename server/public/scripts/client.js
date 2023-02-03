@@ -13,37 +13,57 @@ function getTasks() {
                 console.log(response);
                 let appendStr = ''
                 for (let task of response) {
-                        appendStr +=`
-                        <h3>
-                          ${task.taskname}
-                        </h3>
-                        <p>
-                          ${task.taskdesc}
-                        </p>`;
-                }
-                render('#task-div', appendStr);
-        })
-        .catch((err) => {
-                console.log(err);
-                $('body').prepend('Oops we made a fucky wucky...', err);
-        });
+                        let complete = task.complete;
+                        if (complete) {
+                                appendStr += `
+                                <span>
+                                <h3>
+                                  ${task.taskname}
+                                </h3>
+                                <p>
+                                  ${task.taskdesc}
+                                </p>
+                                <input class="incomplete-btn" type="button" value="🚫">
+                                <p>Completed: ${task.timecomplete}</p>
+                                <input class="delete-btn" type="button" value="❌">
+                                </span>`;
+                        } else {
+                                appendStr += `
+                                <span>
+                                <h3>
+                                  ${task.taskname}
+                                </h3>
+                                <p>
+                                  ${task.taskdesc}
+                                </p>
+                                <input class="complete-btn" type="button" value="✅">
+                                <input class="delete-btn" type="button" value="❌">
+                                </span>`;
+                                }
+                        }
+                        render('#task-div', appendStr);
+                })
+                .catch((err) => {
+                        console.log(err);
+                        $('body').prepend('Oops we made a fucky wucky...', err);
+                });
 }
 
 function submitTask() {
         let name = $('#task-name').val();
         let desc = $('#task-desc').val();
 
-        let payload = {name, desc};
+        let payload = { name, desc };
 
         slay.post('/tasks', payload)
-        .then((response) => {
-                console.log(response);
-                getTasks();
-        })
-        .catch((err) => {
-                console.log(err);
-                $('body').prepend("Oops we made a fucky wucky...", err);
-        });
+                .then((response) => {
+                        console.log(response);
+                        getTasks();
+                })
+                .catch((err) => {
+                        console.log(err);
+                        $('body').prepend("Oops we made a fucky wucky...", err);
+                });
 }
 
 function render(id, string, className, remove) {
