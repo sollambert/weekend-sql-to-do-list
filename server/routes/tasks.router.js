@@ -19,4 +19,4 @@ router.put('/', () => {
 
 });
 
-modules.export = router;
+module.exports = router;
