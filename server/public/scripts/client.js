@@ -4,20 +4,24 @@ $(() => {
 
 function onReady() {
         $(document).on('click', '#task-btn', submitTask);
+        getTasks();
 }
 
 function getTasks() {
         slay.get('/tasks')
         .then((response) => {
+                console.log(response);
+                let appendStr = ''
                 for (let task of response) {
-                        render('#task-div', `
+                        appendStr +=`
                         <h3>
-                          ${task.name}
+                          ${task.taskname}
                         </h3>
                         <p>
-                          ${task.desc}
-                        </p>`);
+                          ${task.taskdesc}
+                        </p>`;
                 }
+                render('#task-div', appendStr);
         })
         .catch((err) => {
                 console.log(err);
