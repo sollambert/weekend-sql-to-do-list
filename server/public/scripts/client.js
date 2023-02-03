@@ -38,6 +38,7 @@ function submitTask() {
         slay.post('/tasks', payload)
         .then((response) => {
                 console.log(response);
+                getTasks();
         })
         .catch((err) => {
                 console.log(err);
