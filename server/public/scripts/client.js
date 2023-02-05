@@ -18,7 +18,7 @@ function checkSubTask() {
         let data = $(this).data('id').split('-');
         slay.get(`/tasks/${data[0]}`)
         .then((response) => {
-                console.log(response);
+                //console.log(response);
                 splitSubs = response[0].subtasks.split('|');
                 splitSub = splitSubs[Number(data[1])].split(':');
                 if (splitSub[1] == 'f') {
@@ -29,7 +29,7 @@ function checkSubTask() {
                 splitSubs[Number(data[1])] = splitSub.join(':');
                 slay.put(`/tasks/subs/${data[0]}`, {subtasks: splitSubs.join('|')})
                 .then((response) => {
-
+                        getTasks();
                 })
                 .catch((err) => {
                         console.log(err);
@@ -81,7 +81,7 @@ function deleteTask() {
 function getTasks() {
         slay.get('/tasks')
                 .then((response) => {
-                        console.log(response);
+                        //console.log(response);
                         let appendStr = ''
                         for (let task of response) {
                                 appendStr += getTaskAppendStr(task);
@@ -100,8 +100,8 @@ function getTaskAppendStr(task) {
         if (task.subtasks != null) {
                 subtasks = task.subtasks.split('|');
         }
-        console.log(task.subtasks);
-        console.log(subtasks);
+        //console.log(task.subtasks);
+        //console.log(subtasks);
         if (task.timecomplete) {
                 let time = new Date(task.timecomplete).toLocaleString();
                 appendStr += `
@@ -169,6 +169,11 @@ function submitTask() {
         let name = $('#task-name').val();
         let desc = $('#task-desc').val();
         let subtasks = $('#subtask-area').val();
+        let split = subtasks.split('|');
+        for (let i = 0; i < split.length; i ++) {
+                split[i] = split[i] + ':f';
+        }
+        subtasks = split.join('|');
         $('#task-name').val('');
         $('#task-desc').val('');
         $('#subtask-area').val('');
@@ -176,7 +181,7 @@ function submitTask() {
 
         slay.post('/tasks', payload)
                 .then((response) => {
-                        console.log(response);
+                        //console.log(response);
                         getTasks();
                 })
                 .catch((err) => {
