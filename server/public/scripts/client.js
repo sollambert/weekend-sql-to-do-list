@@ -20,33 +20,39 @@ function onReady() {
         getTasks();
 }
 
-function sortId () {
+function sortId() {
+        if (sortOrder == 'id') {
+                if (sortDirection == 'ASC') {
+                        sortDirection = 'DESC';
+                } else {
+                        sortDirection = 'ASC';
+                }
+        }
         sortOrder = 'id';
-        if (sortDirection == 'ASC') {
-                sortDirection = 'DESC';
-        } else {
-                sortDirection = 'ASC';
-        }
         getTasks();
 }
 
-function sortName () {
+function sortName() {
+        if (sortOrder == 'taskname') {
+                if (sortDirection == 'ASC') {
+                        sortDirection = 'DESC';
+                } else {
+                        sortDirection = 'ASC';
+                }
+        }
         sortOrder = 'taskname';
-        if (sortDirection == 'ASC') {
-                sortDirection = 'DESC';
-        } else {
-                sortDirection = 'ASC';
-        }
         getTasks();
 }
 
-function sortCompleted () {
-        sortOrder = 'timecomplete';
-        if (sortDirection == 'ASC') {
-                sortDirection = 'DESC';
-        } else {
-                sortDirection = 'ASC';
+function sortCompleted() {
+        if (sortOrder == 'timecomplete') {
+                if (sortDirection == 'ASC') {
+                        sortDirection = 'DESC';
+                } else {
+                        sortDirection = 'ASC';
+                }
         }
+        sortOrder = 'timecomplete';
         getTasks();
 }
 
@@ -137,6 +143,7 @@ function getTasksByOrder(order, asc) {
                         for (let task of response) {
                                 appendStr += getTaskAppendStr(task);
                         }
+                        render('#sort-info', `${sortOrder}, ${sortDirection}`);
                         render('#task-div', appendStr);
                 })
                 .catch((err) => {
@@ -219,31 +226,40 @@ function getTaskAppendStr(task) {
 function submitTask() {
         let name = $('#task-name').val();
         let desc = $('#task-desc').val();
-        let subtasks = $('#subtask-area').val();
-        if (subtasks == '') {
-                subtasks = undefined;
-        } else {
-                let split = subtasks.split('|');
-                for (let i = 0; i < split.length; i++) {
-                        split[i] = split[i] + ':f';
-                }
-                subtasks = split.join('|');
-                console.log(subtasks)
-        }
-        $('#task-name').val('');
-        $('#task-desc').val('');
-        $('#subtask-area').val('');
-        let payload = { name, desc, subtasks };
-
-        slay.post('/tasks', payload)
-                .then((response) => {
-                        //console.log(response);
-                        getTasks();
+        if (name == '' || desc == '') {
+                Swal.mixin().fire({
+                        icon: 'warning',
+                        title: "Empty Input",
+                        text: "Can't submit without a name or description!",
+                        showConfirmButton: true
                 })
-                .catch((err) => {
-                        console.log(err);
-                        $('body').prepend("Oops we made a fucky wucky...", err);
-                });
+        } else {
+                let subtasks = $('#subtask-area').val();
+                if (subtasks == '') {
+                        subtasks = undefined;
+                } else {
+                        let split = subtasks.split('|');
+                        for (let i = 0; i < split.length; i++) {
+                                split[i] = split[i] + ':f';
+                        }
+                        subtasks = split.join('|');
+                        console.log(subtasks)
+                }
+                $('#task-name').val('');
+                $('#task-desc').val('');
+                $('#subtask-area').val('');
+                let payload = { name, desc, subtasks };
+
+                slay.post('/tasks', payload)
+                        .then((response) => {
+                                //console.log(response);
+                                getTasks();
+                        })
+                        .catch((err) => {
+                                console.log(err);
+                                $('body').prepend("Oops we made a fucky wucky...", err);
+                        });
+        }
 }
 
 function render(id, string, className, remove) {
