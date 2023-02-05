@@ -2,12 +2,25 @@ $(() => { onReady(); });
 
 function onReady() {
         $(document).on('click', '#task-btn', submitTask);
+        $(document).on('click', '.delete-btn', deleteTask);
         $(document).on('keypress', 'input textarea', (key) => {
                 if (key.which == 13) {
                         submitTask();
                 }
         });
         getTasks();
+}
+
+function deleteTask() {
+        let id = $(this).parents('div').data('id');
+        slay.del(`/tasks/${id}`)
+                .then((response) => {
+                        getTasks();
+                })
+                .catch((err) => {
+                        console.log(err);
+                        $('body').prepend('Oops we made a fucky wucky...', err);
+                });
 }
 
 function getTasks() {
@@ -37,7 +50,7 @@ function getTaskAppendStr(task) {
         if (task.timecomplete) {
                 let time =  new Date(task.timecomplete).toISOString().split('T');
                 appendStr += `
-                <div class='task complete'>
+                <div class='task complete' data-id=${task.id}>
                 <h3>
                   ${task.taskname}
                 </h3>
@@ -61,7 +74,7 @@ function getTaskAppendStr(task) {
                 appendStr += `</div>`;
         } else {
                 appendStr += `
-                <div class='task'>
+                <div class='task' data-id=${task.id}>
                   <h3>
                     ${task.taskname}
                   </h3>

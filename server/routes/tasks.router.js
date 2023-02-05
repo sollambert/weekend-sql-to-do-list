@@ -30,8 +30,18 @@ router.post('/', (req, res) => {
         });
 });
 
-router.delete('/', () => {
-
+router.delete('/:id', (req, res) => {
+        let query = `DELETE FROM tasks
+        WHERE id=$1`;
+        let params = [req.params.id];
+        pool.query(query, params)
+        .then((dbRes) => {
+                res.sendStatus(204);
+        })
+        .catch((err) => {
+                console.log(err);
+                res.sendStatus(500);
+        })
 });
 
 router.put('/', () => {
