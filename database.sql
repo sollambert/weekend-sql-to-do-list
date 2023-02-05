@@ -8,4 +8,4 @@ create table tasks (
 	
 insert into tasks (taskname, taskdesc, subtasks)
 values ('Dishes','Do all the dishes, yes even those ones',null),
-('Trash', 'Take out the trash, yes even that trash','living room:f|bedroom:f|kitchen:f');
+('Trash', 'Take out the trash, yes even that trash','Living room:f|Bedroom:f|Kitchen:f');
