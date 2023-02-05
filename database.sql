@@ -6,6 +6,6 @@ create table tasks (
 	"timecomplete" timestamp
 	);
 	
-insert into tasks (taskname, taskdesc, complete)
-values ('Dishes','Do all the dishes, yes even those ones','',false),
-('Trash', 'Take out the trash, yes even that trash','living room:f|bedroom:f|kitchen:f', false);
+insert into tasks (taskname, taskdesc, subtasks)
+values ('Dishes','Do all the dishes, yes even those ones',null),
+('Trash', 'Take out the trash, yes even that trash','living room:f|bedroom:f|kitchen:f');

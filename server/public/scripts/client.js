@@ -17,29 +17,29 @@ function onReady() {
 function checkSubTask() {
         let data = $(this).data('id').split('-');
         slay.get(`/tasks/${data[0]}`)
-        .then((response) => {
-                //console.log(response);
-                splitSubs = response[0].subtasks.split('|');
-                splitSub = splitSubs[Number(data[1])].split(':');
-                if (splitSub[1] == 'f') {
-                        splitSub[1] = 't';
-                } else {
-                        splitSub[1] = 'f';
-                }
-                splitSubs[Number(data[1])] = splitSub.join(':');
-                slay.put(`/tasks/subs/${data[0]}`, {subtasks: splitSubs.join('|')})
                 .then((response) => {
-                        getTasks();
+                        //console.log(response);
+                        splitSubs = response[0].subtasks.split('|');
+                        splitSub = splitSubs[Number(data[1])].split(':');
+                        if (splitSub[1] == 'f') {
+                                splitSub[1] = 't';
+                        } else {
+                                splitSub[1] = 'f';
+                        }
+                        splitSubs[Number(data[1])] = splitSub.join(':');
+                        slay.put(`/tasks/subs/${data[0]}`, { subtasks: splitSubs.join('|') })
+                                .then((response) => {
+                                        getTasks();
+                                })
+                                .catch((err) => {
+                                        console.log(err);
+                                        $('body').prepend('Oops we made a fucky wucky...', err);
+                                });
                 })
                 .catch((err) => {
                         console.log(err);
                         $('body').prepend('Oops we made a fucky wucky...', err);
                 });
-        })
-        .catch((err) => {
-                console.log(err);
-                $('body').prepend('Oops we made a fucky wucky...', err);
-        });
 }
 
 function completeTask() {
@@ -68,14 +68,25 @@ function incompleteTask() {
 
 function deleteTask() {
         let id = $(this).parents('div').data('id');
-        slay.del(`/tasks/${id}`)
-                .then((response) => {
-                        getTasks();
+        Swal.mixin().fire({
+                icon: 'warning',
+                title: "Delete?",
+                text: "Are you sure you want to delete this task?",
+                showConfirmButton: true,
+                showCancelButton: true
+        })
+                .then((value) => {
+                        if (value.isConfirmed) {
+                                slay.del(`/tasks/${id}`)
+                                        .then((response) => {
+                                                getTasks();
+                                        })
+                                        .catch((err) => {
+                                                console.log(err);
+                                                $('body').prepend('Oops we made a fucky wucky...', err);
+                                        });
+                        }
                 })
-                .catch((err) => {
-                        console.log(err);
-                        $('body').prepend('Oops we made a fucky wucky...', err);
-                });
 }
 
 function getTasks() {
@@ -169,11 +180,16 @@ function submitTask() {
         let name = $('#task-name').val();
         let desc = $('#task-desc').val();
         let subtasks = $('#subtask-area').val();
-        let split = subtasks.split('|');
-        for (let i = 0; i < split.length; i ++) {
-                split[i] = split[i] + ':f';
+        if (subtasks == '') {
+                subtasks = undefined;
+        } else {
+                let split = subtasks.split('|');
+                for (let i = 0; i < split.length; i++) {
+                        split[i] = split[i] + ':f';
+                }
+                subtasks = split.join('|');
+                console.log(subtasks)
         }
-        subtasks = split.join('|');
         $('#task-name').val('');
         $('#task-desc').val('');
         $('#subtask-area').val('');
