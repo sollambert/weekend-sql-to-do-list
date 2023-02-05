@@ -1,16 +1,52 @@
 $(() => { onReady(); });
 
+let sortOrder = 'id';
+let sortDirection = 'ASC';
+
 function onReady() {
         $(document).on('click', '#task-btn', submitTask);
         $(document).on('click', '.delete-btn', deleteTask);
         $(document).on('click', '.complete-btn', completeTask);
         $(document).on('click', '.incomplete-btn', incompleteTask);
         $(document).on('click', '.sub-check', checkSubTask);
-        $(document).on('keypress', 'input textarea', (key) => {
+        $(document).on('click', '#sort-id', sortId);
+        $(document).on('click', '#sort-name', sortName);
+        $(document).on('click', '#sort-completed', sortCompleted);
+        $(document).on('keypress', 'input,textarea', (key) => {
                 if (key.which == 13) {
                         submitTask();
                 }
         });
+        getTasks();
+}
+
+function sortId () {
+        sortOrder = 'id';
+        if (sortDirection == 'ASC') {
+                sortDirection = 'DESC';
+        } else {
+                sortDirection = 'ASC';
+        }
+        getTasks();
+}
+
+function sortName () {
+        sortOrder = 'taskname';
+        if (sortDirection == 'ASC') {
+                sortDirection = 'DESC';
+        } else {
+                sortDirection = 'ASC';
+        }
+        getTasks();
+}
+
+function sortCompleted () {
+        sortOrder = 'timecomplete';
+        if (sortDirection == 'ASC') {
+                sortDirection = 'DESC';
+        } else {
+                sortDirection = 'ASC';
+        }
         getTasks();
 }
 
@@ -90,9 +126,13 @@ function deleteTask() {
 }
 
 function getTasks() {
-        slay.get('/tasks')
+        getTasksByOrder(sortOrder, sortDirection);
+}
+
+function getTasksByOrder(order, asc) {
+        slay.get(`/tasks/?order=${order}&direction=${asc}`)
                 .then((response) => {
-                        //console.log(response);
+                        console.log(response);
                         let appendStr = ''
                         for (let task of response) {
                                 appendStr += getTaskAppendStr(task);

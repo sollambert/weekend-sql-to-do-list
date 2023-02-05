@@ -4,10 +4,32 @@ const router = express.Router();
 const pool = require('../modules/pool');
 
 router.get('/',(req, res) => {
-        let query = `SELECT * FROM tasks
-        ORDER BY id`;
+        let query = ``;
+        let sortOrder = '';
+        switch (req.query.order) {
+                case 'id':
+                        sortOrder = 'id';
+                        break;
+                case 'taskname':
+                        sortOrder = 'taskname';
+                        break;
+                case 'timecomplete':
+                        sortOrder = 'timecomplete';
+                        break;
+        }
+        if (req.query.direction == 'ASC') {
+                query = `SELECT * FROM tasks
+                ORDER BY ${sortOrder} ASC;`
+        } else {
+                query = `SELECT * FROM tasks
+                ORDER BY ${sortOrder} DESC;`
+        }
+        //let params = [req.query.order];
+        //console.log(params)
+        //console.log(query, params, req.query.direction)
         pool.query(query)
         .then((dbRes) => {
+                //console.log(dbRes)
                 res.send(dbRes.rows);
         })
         .catch((err) => {

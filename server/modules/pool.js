@@ -9,9 +9,9 @@ const pool = new pg.Pool({
         host: 'localhost',
         //port. default: 5432
         port: 5432,
-        user: 'postgres',
+        //user: 'postgres',
         //password
-        password: 'password'
+        //npmpassword: 'password'
 });
 
 module.exports = pool;
