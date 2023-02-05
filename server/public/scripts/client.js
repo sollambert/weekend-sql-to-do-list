@@ -1,4 +1,4 @@
-$(() => {onReady();});
+$(() => { onReady(); });
 
 function onReady() {
         $(document).on('click', '#task-btn', submitTask);
@@ -12,48 +12,77 @@ function onReady() {
 
 function getTasks() {
         slay.get('/tasks')
-        .then((response) => {
-                console.log(response);
-                let appendStr = ''
-                for (let task of response) {
-                        appendStr += getTaskAppendStr(task);
-                }
-                render('#task-div', appendStr);
-        })
-        .catch((err) => {
-                console.log(err);
-                $('body').prepend('Oops we made a fucky wucky...', err);
-        });
+                .then((response) => {
+                        console.log(response);
+                        let appendStr = ''
+                        for (let task of response) {
+                                appendStr += getTaskAppendStr(task);
+                        }
+                        render('#task-div', appendStr);
+                })
+                .catch((err) => {
+                        console.log(err);
+                        $('body').prepend('Oops we made a fucky wucky...', err);
+                });
 }
 
 function getTaskAppendStr(task) {
         let appendStr = ''
         let complete = task.complete;
+        let subtasks = undefined;
+        if (task.subtasks != null) {
+                subtasks = task.subtasks.split('|');
+        }
+        console.log(task.subtasks);
+        console.log(subtasks);
         if (complete) {
                 appendStr += `
-                <span>
+                <div class='task complete'>
                 <h3>
                   ${task.taskname}
                 </h3>
                 <p>
                   ${task.taskdesc}
-                </p>
-                <input class="incomplete-btn" type="button" value="🚫">
-                <p>Completed: ${task.timecomplete}</p>
-                <input class="delete-btn" type="button" value="❌">
-                </span>`;
+                </p>`
+                if (subtasks) {
+                        for (let i = 0; i < subtasks.length; i++) {
+                                appendStr += `
+                        <p>
+                          <input type="checkbox" value="${i}">${subtasks[i]}
+                        </p>`;
+                        }
+                }
+                appendStr += `
+                  <input class="incomplete-btn" type="button" value="🚫">
+                  <input class="delete-btn" type="button" value="❌">`
+                if (task.timecomplete) {
+                        appendStr += `<p>Completed: ${task.timecomplete}</p>`
+                }
+                appendStr += `</div>`;
         } else {
                 appendStr += `
-                <span>
-                <h3>
-                  ${task.taskname}
-                </h3>
-                <p>
-                  ${task.taskdesc}
-                </p>
-                <input class="complete-btn" type="button" value="✅">
-                <input class="delete-btn" type="button" value="❌">
-                </span>`;
+                <div class='task'>
+                  <h3>
+                    ${task.taskname}
+                  </h3>
+                  <p>
+                    ${task.taskdesc}
+                  </p>`
+                  if (subtasks) {
+                          for (let i = 0; i < subtasks.length; i++) {
+                                  appendStr += `
+                          <p>
+                            <input type="checkbox" value="${i}">${subtasks[i]}
+                          </p>`;
+                          }
+                  }
+                appendStr += `
+                  <input class="complete-btn" type="button" value="✅">
+                  <input class="delete-btn" type="button" value="❌">`
+                if (task.timecomplete) {
+                        appendStr += `<p>Completed: ${task.timecomplete}</p>`
+                }
+                appendStr += `</div>`;
         }
         return appendStr;
 }
@@ -67,14 +96,14 @@ function submitTask() {
         let payload = { name, desc };
 
         slay.post('/tasks', payload)
-        .then((response) => {
-                console.log(response);
-                getTasks();
-        })
-        .catch((err) => {
-                console.log(err);
-                $('body').prepend("Oops we made a fucky wucky...", err);
-        });
+                .then((response) => {
+                        console.log(response);
+                        getTasks();
+                })
+                .catch((err) => {
+                        console.log(err);
+                        $('body').prepend("Oops we made a fucky wucky...", err);
+                });
 }
 
 function render(id, string, className, remove) {

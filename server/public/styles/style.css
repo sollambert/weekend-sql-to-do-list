@@ -1,0 +1,17 @@
+#task-div {
+    display: inline-block;
+    padding: 1%;
+}
+
+
+.task {
+    display: inline-block;
+    background-color: burlywood;
+    border-radius: 25px;
+    width: 24vw;
+    padding: 20px;
+}
+
+.complete {
+    background-color: rgba(222,184,135,0.5);
+}
