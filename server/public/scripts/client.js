@@ -2,7 +2,7 @@ $(() => { onReady(); });
 
 function onReady() {
         $(document).on('click', '#task-btn', submitTask);
-        $(document).on('keypress', 'input', (key) => {
+        $(document).on('keypress', 'input textarea', (key) => {
                 if (key.which == 13) {
                         submitTask();
                 }
@@ -27,15 +27,15 @@ function getTasks() {
 }
 
 function getTaskAppendStr(task) {
-        let appendStr = ''
-        let complete = task.complete;
+        let appendStr = '';
         let subtasks = undefined;
         if (task.subtasks != null) {
                 subtasks = task.subtasks.split('|');
         }
         console.log(task.subtasks);
         console.log(subtasks);
-        if (complete) {
+        if (task.timecomplete) {
+                let time =  new Date(task.timecomplete).toISOString().split('T');
                 appendStr += `
                 <div class='task complete'>
                 <h3>
@@ -56,7 +56,7 @@ function getTaskAppendStr(task) {
                   <input class="incomplete-btn" type="button" value="🚫">
                   <input class="delete-btn" type="button" value="❌">`
                 if (task.timecomplete) {
-                        appendStr += `<p>Completed: ${task.timecomplete}</p>`
+                        appendStr += `<p>Completed: ${time[1].split('.')[0]} ${time[0]}</p>`
                 }
                 appendStr += `</div>`;
         } else {
@@ -90,10 +90,11 @@ function getTaskAppendStr(task) {
 function submitTask() {
         let name = $('#task-name').val();
         let desc = $('#task-desc').val();
+        let subtasks = $('#subtask-area').val();
         $('#task-name').val('');
         $('#task-desc').val('');
-
-        let payload = { name, desc };
+        $('#subtask-area').val('');
+        let payload = { name, desc, subtasks };
 
         slay.post('/tasks', payload)
                 .then((response) => {
