@@ -3,12 +3,67 @@ $(() => { onReady(); });
 function onReady() {
         $(document).on('click', '#task-btn', submitTask);
         $(document).on('click', '.delete-btn', deleteTask);
+        $(document).on('click', '.complete-btn', completeTask);
+        $(document).on('click', '.incomplete-btn', incompleteTask);
+        $(document).on('click', '.sub-check', checkSubTask);
         $(document).on('keypress', 'input textarea', (key) => {
                 if (key.which == 13) {
                         submitTask();
                 }
         });
         getTasks();
+}
+
+function checkSubTask() {
+        let data = $(this).data('id').split('-');
+        slay.get(`/tasks/${data[0]}`)
+        .then((response) => {
+                console.log(response);
+                splitSubs = response[0].subtasks.split('|');
+                splitSub = splitSubs[Number(data[1])].split(':');
+                if (splitSub[1] == 'f') {
+                        splitSub[1] = 't';
+                } else {
+                        splitSub[1] = 'f';
+                }
+                splitSubs[Number(data[1])] = splitSub.join(':');
+                slay.put(`/tasks/subs/${data[0]}`, {subtasks: splitSubs.join('|')})
+                .then((response) => {
+
+                })
+                .catch((err) => {
+                        console.log(err);
+                        $('body').prepend('Oops we made a fucky wucky...', err);
+                });
+        })
+        .catch((err) => {
+                console.log(err);
+                $('body').prepend('Oops we made a fucky wucky...', err);
+        });
+}
+
+function completeTask() {
+        let id = $(this).parents('div').data('id');
+        slay.put(`/tasks/${id}`, { timecomplete: new Date().toLocaleString() })
+                .then((response) => {
+                        getTasks();
+                })
+                .catch((err) => {
+                        console.log(err);
+                        $('body').prepend('Oops we made a fucky wucky...', err);
+                });
+}
+
+function incompleteTask() {
+        let id = $(this).parents('div').data('id');
+        slay.put(`/tasks/${id}`, { timecomplete: null })
+                .then((response) => {
+                        getTasks();
+                })
+                .catch((err) => {
+                        console.log(err);
+                        $('body').prepend('Oops we made a fucky wucky...', err);
+                });
 }
 
 function deleteTask() {
@@ -48,7 +103,7 @@ function getTaskAppendStr(task) {
         console.log(task.subtasks);
         console.log(subtasks);
         if (task.timecomplete) {
-                let time =  new Date(task.timecomplete).toISOString().split('T');
+                let time = new Date(task.timecomplete).toLocaleString();
                 appendStr += `
                 <div class='task complete' data-id=${task.id}>
                 <h3>
@@ -59,17 +114,22 @@ function getTaskAppendStr(task) {
                 </p>`
                 if (subtasks) {
                         for (let i = 0; i < subtasks.length; i++) {
+                                let subtask = subtasks[i].split(':');
+                                let checked = '';
+                                if (subtask[1] == 't') {
+                                        checked = 'checked';
+                                }
                                 appendStr += `
-                        <p>
-                          <input type="checkbox" value="${i}">${subtasks[i]}
-                        </p>`;
+                                <p>
+                                  <input class='sub-check' data-id=${task.id}-${i}-${subtask[1]} type="checkbox" ${checked}>${subtask[0]}
+                                </p>`;
                         }
                 }
                 appendStr += `
                   <input class="incomplete-btn" type="button" value="🚫">
                   <input class="delete-btn" type="button" value="❌">`
                 if (task.timecomplete) {
-                        appendStr += `<p>Completed: ${time[1].split('.')[0]} ${time[0]}</p>`
+                        appendStr += `<p>Completed: ${time}</p>`
                 }
                 appendStr += `</div>`;
         } else {
@@ -81,14 +141,19 @@ function getTaskAppendStr(task) {
                   <p>
                     ${task.taskdesc}
                   </p>`
-                  if (subtasks) {
-                          for (let i = 0; i < subtasks.length; i++) {
-                                  appendStr += `
-                          <p>
-                            <input type="checkbox" value="${i}">${subtasks[i]}
-                          </p>`;
-                          }
-                  }
+                if (subtasks) {
+                        for (let i = 0; i < subtasks.length; i++) {
+                                let subtask = subtasks[i].split(':');
+                                let checked = '';
+                                if (subtask[1] == 't') {
+                                        checked = 'checked';
+                                }
+                                appendStr += `
+                                <p>
+                                  <input class='sub-check' data-id=${task.id}-${i}-${subtask[1]} type="checkbox" ${checked}>${subtask[0]}
+                                </p>`;
+                        }
+                }
                 appendStr += `
                   <input class="complete-btn" type="button" value="✅">
                   <input class="delete-btn" type="button" value="❌">`
