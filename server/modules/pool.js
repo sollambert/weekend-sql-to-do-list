@@ -11,7 +11,7 @@ const pool = new pg.Pool({
         port: 5432,
         //user: 'postgres',
         //password
-        //password: 'password'
+        //npmpassword: 'password'
 });
 
 module.exports = pool;

@@ -1,8 +1,18 @@
-$(() => {onReady();});
+$(() => { onReady(); });
+
+let sortOrder = 'id';
+let sortDirection = 'ASC';
 
 function onReady() {
         $(document).on('click', '#task-btn', submitTask);
-        $(document).on('keypress', 'input', (key) => {
+        $(document).on('click', '.delete-btn', deleteTask);
+        $(document).on('click', '.complete-btn', completeTask);
+        $(document).on('click', '.incomplete-btn', incompleteTask);
+        $(document).on('click', '.sub-check', checkSubTask);
+        $(document).on('click', '#sort-id', sortId);
+        $(document).on('click', '#sort-name', sortName);
+        $(document).on('click', '#sort-completed', sortCompleted);
+        $(document).on('keypress', 'input,textarea', (key) => {
                 if (key.which == 13) {
                         submitTask();
                 }
@@ -10,50 +20,198 @@ function onReady() {
         getTasks();
 }
 
-function getTasks() {
-        slay.get('/tasks')
-        .then((response) => {
-                console.log(response);
-                let appendStr = ''
-                for (let task of response) {
-                        appendStr += getTaskAppendStr(task);
-                }
-                render('#task-div', appendStr);
+function sortId () {
+        sortOrder = 'id';
+        if (sortDirection == 'ASC') {
+                sortDirection = 'DESC';
+        } else {
+                sortDirection = 'ASC';
+        }
+        getTasks();
+}
+
+function sortName () {
+        sortOrder = 'taskname';
+        if (sortDirection == 'ASC') {
+                sortDirection = 'DESC';
+        } else {
+                sortDirection = 'ASC';
+        }
+        getTasks();
+}
+
+function sortCompleted () {
+        sortOrder = 'timecomplete';
+        if (sortDirection == 'ASC') {
+                sortDirection = 'DESC';
+        } else {
+                sortDirection = 'ASC';
+        }
+        getTasks();
+}
+
+function checkSubTask() {
+        let data = $(this).data('id').split('-');
+        slay.get(`/tasks/${data[0]}`)
+                .then((response) => {
+                        //console.log(response);
+                        splitSubs = response[0].subtasks.split('|');
+                        splitSub = splitSubs[Number(data[1])].split(':');
+                        if (splitSub[1] == 'f') {
+                                splitSub[1] = 't';
+                        } else {
+                                splitSub[1] = 'f';
+                        }
+                        splitSubs[Number(data[1])] = splitSub.join(':');
+                        slay.put(`/tasks/subs/${data[0]}`, { subtasks: splitSubs.join('|') })
+                                .then((response) => {
+                                        getTasks();
+                                })
+                                .catch((err) => {
+                                        console.log(err);
+                                        $('body').prepend('Oops we made a fucky wucky...', err);
+                                });
+                })
+                .catch((err) => {
+                        console.log(err);
+                        $('body').prepend('Oops we made a fucky wucky...', err);
+                });
+}
+
+function completeTask() {
+        let id = $(this).parents('div').data('id');
+        slay.put(`/tasks/${id}`, { timecomplete: new Date().toLocaleString() })
+                .then((response) => {
+                        getTasks();
+                })
+                .catch((err) => {
+                        console.log(err);
+                        $('body').prepend('Oops we made a fucky wucky...', err);
+                });
+}
+
+function incompleteTask() {
+        let id = $(this).parents('div').data('id');
+        slay.put(`/tasks/${id}`, { timecomplete: null })
+                .then((response) => {
+                        getTasks();
+                })
+                .catch((err) => {
+                        console.log(err);
+                        $('body').prepend('Oops we made a fucky wucky...', err);
+                });
+}
+
+function deleteTask() {
+        let id = $(this).parents('div').data('id');
+        Swal.mixin().fire({
+                icon: 'warning',
+                title: "Delete?",
+                text: "Are you sure you want to delete this task?",
+                showConfirmButton: true,
+                showCancelButton: true
         })
-        .catch((err) => {
-                console.log(err);
-                $('body').prepend('Oops we made a fucky wucky...', err);
-        });
+                .then((value) => {
+                        if (value.isConfirmed) {
+                                slay.del(`/tasks/${id}`)
+                                        .then((response) => {
+                                                getTasks();
+                                        })
+                                        .catch((err) => {
+                                                console.log(err);
+                                                $('body').prepend('Oops we made a fucky wucky...', err);
+                                        });
+                        }
+                })
+}
+
+function getTasks() {
+        getTasksByOrder(sortOrder, sortDirection);
+}
+
+function getTasksByOrder(order, asc) {
+        slay.get(`/tasks/?order=${order}&direction=${asc}`)
+                .then((response) => {
+                        console.log(response);
+                        let appendStr = ''
+                        for (let task of response) {
+                                appendStr += getTaskAppendStr(task);
+                        }
+                        render('#task-div', appendStr);
+                })
+                .catch((err) => {
+                        console.log(err);
+                        $('body').prepend('Oops we made a fucky wucky...', err);
+                });
 }
 
 function getTaskAppendStr(task) {
-        let appendStr = ''
-        let complete = task.complete;
-        if (complete) {
+        let appendStr = '';
+        let subtasks = undefined;
+        if (task.subtasks != null) {
+                subtasks = task.subtasks.split('|');
+        }
+        //console.log(task.subtasks);
+        //console.log(subtasks);
+        if (task.timecomplete) {
+                let time = new Date(task.timecomplete).toLocaleString();
                 appendStr += `
-                <span>
+                <div class='task complete' data-id=${task.id}>
                 <h3>
                   ${task.taskname}
                 </h3>
                 <p>
                   ${task.taskdesc}
-                </p>
-                <input class="incomplete-btn" type="button" value="🚫">
-                <p>Completed: ${task.timecomplete}</p>
-                <input class="delete-btn" type="button" value="❌">
-                </span>`;
+                </p>`
+                if (subtasks) {
+                        for (let i = 0; i < subtasks.length; i++) {
+                                let subtask = subtasks[i].split(':');
+                                let checked = '';
+                                if (subtask[1] == 't') {
+                                        checked = 'checked';
+                                }
+                                appendStr += `
+                                <p>
+                                  <input class='sub-check' data-id=${task.id}-${i}-${subtask[1]} type="checkbox" ${checked}>${subtask[0]}
+                                </p>`;
+                        }
+                }
+                appendStr += `
+                  <input class="incomplete-btn" type="button" value="🚫">
+                  <input class="delete-btn" type="button" value="❌">`
+                if (task.timecomplete) {
+                        appendStr += `<p>Completed: ${time}</p>`
+                }
+                appendStr += `</div>`;
         } else {
                 appendStr += `
-                <span>
-                <h3>
-                  ${task.taskname}
-                </h3>
-                <p>
-                  ${task.taskdesc}
-                </p>
-                <input class="complete-btn" type="button" value="✅">
-                <input class="delete-btn" type="button" value="❌">
-                </span>`;
+                <div class='task' data-id=${task.id}>
+                  <h3>
+                    ${task.taskname}
+                  </h3>
+                  <p>
+                    ${task.taskdesc}
+                  </p>`
+                if (subtasks) {
+                        for (let i = 0; i < subtasks.length; i++) {
+                                let subtask = subtasks[i].split(':');
+                                let checked = '';
+                                if (subtask[1] == 't') {
+                                        checked = 'checked';
+                                }
+                                appendStr += `
+                                <p>
+                                  <input class='sub-check' data-id=${task.id}-${i}-${subtask[1]} type="checkbox" ${checked}>${subtask[0]}
+                                </p>`;
+                        }
+                }
+                appendStr += `
+                  <input class="complete-btn" type="button" value="✅">
+                  <input class="delete-btn" type="button" value="❌">`
+                if (task.timecomplete) {
+                        appendStr += `<p>Completed: ${task.timecomplete}</p>`
+                }
+                appendStr += `</div>`;
         }
         return appendStr;
 }
@@ -61,20 +219,31 @@ function getTaskAppendStr(task) {
 function submitTask() {
         let name = $('#task-name').val();
         let desc = $('#task-desc').val();
+        let subtasks = $('#subtask-area').val();
+        if (subtasks == '') {
+                subtasks = undefined;
+        } else {
+                let split = subtasks.split('|');
+                for (let i = 0; i < split.length; i++) {
+                        split[i] = split[i] + ':f';
+                }
+                subtasks = split.join('|');
+                console.log(subtasks)
+        }
         $('#task-name').val('');
         $('#task-desc').val('');
-
-        let payload = { name, desc };
+        $('#subtask-area').val('');
+        let payload = { name, desc, subtasks };
 
         slay.post('/tasks', payload)
-        .then((response) => {
-                console.log(response);
-                getTasks();
-        })
-        .catch((err) => {
-                console.log(err);
-                $('body').prepend("Oops we made a fucky wucky...", err);
-        });
+                .then((response) => {
+                        //console.log(response);
+                        getTasks();
+                })
+                .catch((err) => {
+                        console.log(err);
+                        $('body').prepend("Oops we made a fucky wucky...", err);
+                });
 }
 
 function render(id, string, className, remove) {
