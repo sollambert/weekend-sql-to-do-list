@@ -17,9 +17,9 @@ router.get('/',(req, res) => {
 
 router.post('/', (req, res) => {
         let query = `
-        INSERT INTO tasks (taskname, taskdesc, complete, timecomplete)
-        VALUES ($1, $2, false, null)`;
-        let params = [req.body.name, req.body.desc];
+        INSERT INTO tasks (taskname, taskdesc, subtasks, complete, timecomplete)
+        VALUES ($1, $2, $3, false, null)`;
+        let params = [req.body.name, req.body.desc, req.body.subtasks];
         pool.query(query, params)
         .then((dbRes) => {
                 res.sendStatus(201);
