@@ -3,8 +3,7 @@ create table tasks (
 	"taskname" varchar(64) not null,
 	"taskdesc" varchar(256) not null,
 	"subtasks" varchar(1024) not null,
-	"complete" boolean,
-	"timecomplete" date
+	"timecomplete" timestamp
 	);
 	
 insert into tasks (taskname, taskdesc, complete)
