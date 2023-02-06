@@ -1,17 +1,29 @@
-const pg = require('pg'); //importing the PG dependency
+// server/modules/pool.js
+const pg = require('pg');
+let pool;
 
-//pool represents a network connection to db
-//we call pool.query to query db
-const pool = new pg.Pool({
-        //Name DB
-        database: 'weekend-to-do-app',
-        //host
+// When our app is deployed to the internet 
+// we'll use the DATABASE_URL environment variable
+// to set the connection info: web address, username/password, db name
+// eg: 
+//  DATABASE_URL=postgresql://jDoe354:secretPw123@some.db.com/prime_app
+if (process.env.DATABASE_URL) {
+    pool = new pg.Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+            rejectUnauthorized: false
+        }
+    });
+}
+// When we're running this app on our own computer
+// we'll connect to the postgres database that is 
+// also running on our computer (localhost)
+else {
+    pool = new pg.Pool({
         host: 'localhost',
-        //port. default: 5432
         port: 5432,
-        //user: 'postgres',
-        //password
-        //npmpassword: 'password'
-});
+        database: 'weekend-to-do-app', 
+    });
+}
 
 module.exports = pool;

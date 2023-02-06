@@ -117,7 +117,7 @@ router.put('/:id', (req, res) => {
 });
 
 /**
- * Route for handling HTTP PUT requests on /subs/:id route and applying persistent data for specified task subtasks
+ * Route for handling HTTP PUT requests on /subs/:id route and applying persistent data for specified task
  */
 router.put('/subs/:id', (req, res) => {
         let query = `UPDATE tasks
