@@ -1,8 +1,8 @@
 create table tasks (
 	"id" serial primary key,
-	"taskname" varchar(64) not null,
-	"taskdesc" varchar(256) not null,
-	"subtasks" varchar(1024),
+	"taskname" varchar(60) not null,
+	"taskdesc" varchar(255) not null,
+	"subtasks" text(1000),
 	"timecomplete" timestamp
 	);
 	
